@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: opbk_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5433:${DB_PORT}"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./../Open_BK_BE
+    container_name: opbk_backend
+    restart: always
+    env_file: .env.be
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+
+  frontend:
+    build: ./../Open_BK_FE
+    container_name: opbk_frontend
+    restart: always
+    env_file: .env.fe
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
