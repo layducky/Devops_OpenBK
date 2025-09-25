@@ -43,7 +43,8 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./certbot:/etc/letsencrypt
+      - ./certbot:/etc/letsencrypt:ro
+      - ./certbot-www:/var/www/certbot
     depends_on:
       - frontend
       - backend
