@@ -15,7 +15,7 @@ services:
       - db_data:/var/lib/postgresql/data
 
   backend:
-    build: ./../Open_BK_BE
+    image: layducky/openbk-be:latest
     container_name: opbk_backend
     restart: always
     env_file: .env.be
@@ -25,7 +25,7 @@ services:
       - db
 
   frontend:
-    build: ./../Open_BK_FE
+    image: layducky/openbk-fe:latest
     container_name: opbk_frontend
     restart: always
     env_file: .env.fe
@@ -48,6 +48,13 @@ services:
     depends_on:
       - frontend
       - backend
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 60 --cleanup
+    restart: always
 
 volumes:
   db_data:
