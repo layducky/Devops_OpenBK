@@ -1,0 +1,64 @@
+name: CD - Production Deploy
+
+on:
+  # Auto deploy after CI
+  workflow_run:
+    workflows:
+      - CI/CD Backend
+      - CI/CD Frontend
+    types:
+      - completed
+
+  # Manual deploy (rollback / hotfix)
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Image version (e.g. 1.2.3)"
+        required: true
+
+jobs:
+  deploy:
+    # Chỉ deploy khi CI thành công
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Resolve version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            TAG=${{ github.event.workflow_run.head_branch }}
+            echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e
+
+            APP_DIR=/opt/openbk
+            VERSION=${{ steps.version.outputs.VERSION }}
+
+            if [ ! -d "$APP_DIR" ]; then
+              mkdir -p /opt
+              cd /opt
+              git clone ${{ secrets.REPO_SSH_URL }} openbk
+            fi
+
+            cd $APP_DIR
+
+            export BE_TAG=$VERSION
+            export FE_TAG=$VERSION
+
+            docker compose pull
+            docker compose up -d
