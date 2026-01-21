@@ -1,14 +1,12 @@
-name: Build and Push Docker Images
+name: Build and Deploy
 
 on:
   push:
-    branches:
-      - main  # chạy mỗi khi bạn push lên branch main
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,14 +17,40 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build & Push Backend Image
-        run: |
-          cd Open_BK_BE
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/openbk-be:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/openbk-be:latest
+      - name: Build & Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Open_BK_BE
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/openbk-be:latest
 
-      - name: Build & Push Frontend Image
-        run: |
-          cd ../Open_BK_FE
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/openbk-fe:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/openbk-fe:latest
+      - name: Build & Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Open_BK_FE
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/openbk-fe:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Executing remote ssh commands using password
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p ~/opbk-deploy
+            cd ~/opbk-deploy
+            
+            echo "DB_USER=${{ secrets.DB_USER }}" > .env
+            echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
