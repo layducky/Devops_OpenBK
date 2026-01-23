@@ -1,56 +1,35 @@
-name: Build and Deploy
+name: Production Deployment
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build & Push Backend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./Open_BK_BE
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/openbk-be:latest
-
-      - name: Build & Push Frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./Open_BK_FE
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/openbk-fe:latest
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Executing remote ssh commands using password
+      - name: Checkout DevOps Repo
+        uses: actions/checkout@v4
+
+      - name: Copy deployment files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yml,nginx.conf,setup.sh"
+          target: "~/opbk-deploy"
+
+      - name: Execute setup script
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: DB_USER,DB_PASS,DB_NAME,DB_PORT,BE_PORT,BE_DB_DIALECT,BE_DB_URL,BE_FE_ORIGIN,BE_ACCESS_TOKEN_SECRET,BE_ACCESS_TOKEN_LIFETIME,FE_NEXTAUTH_SECRET,FE_NEXTAUTH_URL,FE_NEXT_PUBLIC_GOOGLE_CLIENT_ID,FE_NEXT_PUBLIC_GOOGLE_CLIENT_SECRET
           script: |
-            mkdir -p ~/opbk-deploy
             cd ~/opbk-deploy
-            
-            echo "DB_USER=${{ secrets.DB_USER }}" > .env
-            echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
-            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
-            
-            docker compose pull
-            docker compose up -d
-            docker image prune -f
+            chmod +x setup.sh
+            ./setup.sh
