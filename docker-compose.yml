@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   db:
     image: postgres:15-alpine
@@ -15,7 +13,7 @@ services:
       - db_data:/var/lib/postgresql/data
 
   backend:
-    image: layducky/openbk-be:latest
+    image: layducky/openbk-be:1.0.0
     container_name: opbk_backend
     restart: always
     env_file: .env.be
@@ -25,7 +23,7 @@ services:
       - db
 
   frontend:
-    image: layducky/openbk-fe:latest
+    image: layducky/openbk-fe:1.0.0
     container_name: opbk_frontend
     restart: always
     env_file: .env.fe
