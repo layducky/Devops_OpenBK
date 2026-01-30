@@ -20,7 +20,9 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "docker-compose.yml,nginx.conf,setup.sh"
-          target: "~/opbk-deploy"
+          target: "~/Devops_OpenBK"
+          strip_components: 0
+          overwrite: true
 
       - name: Execute setup script
         uses: appleboy/ssh-action@v1.0.3
@@ -28,8 +30,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: DB_USER,DB_PASS,DB_NAME,DB_PORT,BE_PORT,BE_DB_DIALECT,BE_DB_URL,BE_FE_ORIGIN,BE_ACCESS_TOKEN_SECRET,BE_ACCESS_TOKEN_LIFETIME,FE_NEXTAUTH_SECRET,FE_NEXTAUTH_URL,FE_NEXT_PUBLIC_GOOGLE_CLIENT_ID,FE_NEXT_PUBLIC_GOOGLE_CLIENT_SECRET
           script: |
-            cd ~/opbk-deploy
+            cd ~/Devops_OpenBK
             chmod +x setup.sh
             ./setup.sh
