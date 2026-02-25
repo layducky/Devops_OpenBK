@@ -10,3 +10,11 @@ fi
 
 docker compose pull
 docker compose up -d
+
+echo "Waiting for database to be ready..."
+sleep 15
+
+echo "Seeding database..."
+docker compose exec -T backend node scripts/seedAll.js
+
+echo "Setup complete!"
