@@ -72,7 +72,7 @@ PORT = <...>
 ACCESS_TOKEN_SECRET = '11111'
 ACCESS_TOKEN_LIFETIME = '1d'
 DB_DIALECT = 'postgres'
-DB_URL='postgres://postgres:<dbpassword>@<db_container_name>:<port>/opbk'
+DB_URL='postgres://postgres:<dbpassword>@<db_hostname>:<port>/opbk'
 FE_ORIGIN = <frontend_origin>
 ```
 
