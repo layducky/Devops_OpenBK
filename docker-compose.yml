@@ -24,6 +24,13 @@ services:
 
   frontend:
     image: layducky/openbk-fe:1.1.0
+    build:
+      context: ../Open_BK_FE
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+        NEXT_PUBLIC_GOOGLE_CLIENT_SECRET: ${NEXT_PUBLIC_GOOGLE_CLIENT_SECRET}
     container_name: opbk_frontend
     restart: always
     env_file: .env.fe

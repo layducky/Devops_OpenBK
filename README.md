@@ -65,6 +65,10 @@ DB_USER=<...>
 DB_PASS=<...>
 DB_NAME=<...>
 DB_PORT=<...>
+# Cần thêm các biến sau khi build frontend từ source (docker compose up --build)
+NEXT_PUBLIC_API_URL=http://<ip>:<port>/api/v1
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=<...>
+NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=<...>
 ```
 * .env.be:
 ```bash
@@ -86,6 +90,14 @@ NEXTAUTH_SECRET=<...>
 
 ### 3. Chạy dự án
 
+**Cách 1 - Dùng image có sẵn từ Docker Hub** (khuyến nghị cho production):
+```bash
+docker compose pull
+docker compose up -d
+```
+
+**Cách 2 - Build frontend từ source** (khi cần tùy chỉnh API URL):
+Đảm bảo đã clone Open_BK_FE vào thư mục cùng cấp với Devops_OpenBK, và thêm `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_GOOGLE_CLIENT_SECRET` vào file `.env`:
 ```bash
 docker compose up -d --build
 ```
@@ -93,6 +105,20 @@ docker compose up -d --build
 Sau khi khởi chạy thành công:
 
 * Ứng dụng : [openbk.me](openbk.me)
+
+---
+
+## CI/CD - Build image Frontend (Open_BK_FE)
+
+Khi push tag `v*.*.*` lên repo Open_BK_FE, GitHub Actions sẽ build và push image lên Docker Hub. Cần cấu hình các **Secrets** sau trong repo Open_BK_FE (Settings > Secrets and variables > Actions):
+
+| Secret | Mô tả |
+|--------|-------|
+| `DOCKER_USERNAME` | Tên đăng nhập Docker Hub |
+| `DOCKER_PASSWORD` | Mật khẩu/token Docker Hub |
+| `NEXT_PUBLIC_API_URL` | URL API production (vd: `https://openbk.me/api/v1`) |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth Client ID |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
 
 ---
 
