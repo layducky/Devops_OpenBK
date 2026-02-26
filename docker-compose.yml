@@ -13,7 +13,7 @@ services:
       - db_data:/var/lib/postgresql/data
 
   backend:
-    image: layducky/openbk-be:1.1.0
+    image: layducky/openbk-be:1.1.1
     container_name: opbk_backend
     restart: always
     env_file: .env.be
@@ -23,7 +23,7 @@ services:
       - db
 
   frontend:
-    image: layducky/openbk-fe:1.1.3
+    image: layducky/openbk-fe:1.1.4
     build:
       context: ../Open_BK_FE
       dockerfile: Dockerfile
