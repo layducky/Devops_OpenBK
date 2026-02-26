@@ -82,11 +82,13 @@ FE_ORIGIN = <frontend_origin>
 
 * .env.fe:
 ```bash
-NEXT_PUBLIC_API_URL=http://<ip>:<port>/api/v1
+NEXT_PUBLIC_API_URL=https://<domain>/api/v1
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=<...>
 NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=<...>
 NEXTAUTH_SECRET=<...>
+NEXTAUTH_URL=https://<domain>
 ```
+> **Lưu ý:** `NEXTAUTH_URL` phải trùng domain production (vd: `https://openbk.me`) để tránh redirect về localhost sau khi login.
 
 ### 3. Chạy dự án
 
