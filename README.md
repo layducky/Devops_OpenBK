@@ -5,6 +5,52 @@ Chào mừng bạn đến với **Hệ thống học tập trực tuyến OPENBK
 Ứng dụng đã được triển khai tại: [openbk.me](openbk.me)
 
 ---
+
+## Kiến trúc hệ thống
+
+```mermaid
+flowchart TB
+    subgraph Client [Client]
+        User[User Browser]
+    end
+
+    subgraph DockerHost [Docker Host]
+        subgraph Nginx [Nginx - Port 80]
+            NginxProxy[Reverse Proxy]
+        end
+
+        subgraph Frontend [Frontend Container]
+            NextJS["Next.js (port 3000)"]
+        end
+
+        subgraph Backend [Backend Container]
+            NodeAPI["Node.js API (port 5000)"]
+        end
+    end
+
+    subgraph External [External Services]
+        PostgreSQL[(PostgreSQL RDS)]
+        S3[(AWS S3)]
+    end
+
+    User -->|"HTTPS /"| NginxProxy
+    User -->|"HTTPS /api/v1/*"| NginxProxy
+    User -.->|"Direct PUT multipart"| S3
+
+    NginxProxy -->|"/"| NextJS
+    NginxProxy -->|"/api/v1/"| NodeAPI
+
+    NodeAPI -->|"Sequelize"| PostgreSQL
+    NodeAPI -->|"Presigned URLs, metadata"| S3
+```
+
+**Luồng chính:**
+- **User** truy cập `openbk.me` → **Nginx** nhận request, route `/` sang Frontend, `/api/v1/` sang Backend
+- **Backend** kết nối **PostgreSQL** (RDS) cho dữ liệu, **S3** cho file video
+- **Upload video lớn**: Client nhận presigned URL từ Backend, upload trực tiếp lên S3 (không qua Backend)
+
+---
+
 Link repo front-end & backend:
 * [https://github.com/layducky/Open_BK_FE](https://github.com/layducky/Open_BK_FE)
 * [https://github.com/layducky/Open_BK_BE](https://github.com/layducky/Open_BK_BE)
@@ -78,6 +124,11 @@ ACCESS_TOKEN_LIFETIME = '1d'
 DB_DIALECT = 'postgres'
 DB_URL='postgres://postgres:<dbpassword>@<db_hostname>:<port>/opbk'
 FE_ORIGIN = <frontend_origin>
+# S3 (cho upload video trực tiếp từ client)
+AWS_ACCESS_KEY_ID = <...>
+AWS_SECRET_ACCESS_KEY = <...>
+AWS_REGION = ap-southeast-1
+S3_BUCKET_NAME = <bucket_name>
 ```
 
 * .env.fe:
@@ -107,6 +158,26 @@ docker compose up -d --build
 Sau khi khởi chạy thành công:
 
 * Ứng dụng : [openbk.me](openbk.me)
+
+---
+
+## S3 CORS - Upload video trực tiếp từ client
+
+Để upload video lớn qua multipart (client → S3 trực tiếp), cần cấu hình CORS trên bucket S3:
+
+1. Vào AWS Console → S3 → chọn bucket → Permissions → CORS
+2. Dán nội dung từ file `s3-cors-config.json` hoặc cấu hình tương đương:
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://openbk.me", "https://www.openbk.me", "http://localhost:3000"],
+    "AllowedMethods": ["PUT"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"]
+  }
+]
+```
 
 ---
 

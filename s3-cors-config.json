@@ -1,0 +1,12 @@
+[
+  {
+    "AllowedOrigins": [
+      "https://openbk.me",
+      "https://www.openbk.me",
+      "http://localhost:3000"
+    ],
+    "AllowedMethods": ["PUT"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"]
+  }
+]

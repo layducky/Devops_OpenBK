@@ -1,6 +1,6 @@
 services:
   backend:
-    image: layducky/openbk-be:1.2.3
+    image: layducky/openbk-be:1.2.4
     container_name: opbk_backend
     restart: always
     env_file: .env.be
@@ -8,7 +8,7 @@ services:
       - "5000"
 
   frontend:
-    image: layducky/openbk-fe:1.2.1
+    image: layducky/openbk-fe:1.2.2
     build:
       context: ../Open_BK_FE
       dockerfile: Dockerfile
