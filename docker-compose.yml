@@ -1,6 +1,6 @@
 services:
   backend:
-    image: layducky/openbk-be:1.2.1
+    image: layducky/openbk-be:1.2.2
     container_name: opbk_backend
     restart: always
     env_file: .env.be
