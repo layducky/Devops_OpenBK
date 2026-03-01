@@ -1,26 +1,11 @@
 services:
-  db:
-    image: postgres:15-alpine
-    container_name: opbk_db
-    restart: always
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: ${DB_NAME}
-    ports:
-      - "5433:${DB_PORT}"
-    volumes:
-      - db_data:/var/lib/postgresql/data
-
   backend:
-    image: layducky/openbk-be:1.2.0
+    image: layducky/openbk-be:1.2.1
     container_name: opbk_backend
     restart: always
     env_file: .env.be
     expose:
       - "5000"
-    depends_on:
-      - db
 
   frontend:
     image: layducky/openbk-fe:1.2.0
@@ -49,5 +34,3 @@ services:
       - frontend
       - backend
 
-volumes:
-  db_data:
