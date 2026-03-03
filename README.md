@@ -195,3 +195,78 @@ Khi push tag `v*.*.*` lên repo Open_BK_FE, GitHub Actions sẽ build và push i
 
 ---
 
+## Load Test với K6 - Kiểm tra sức chịu tải
+
+Sử dụng [k6](https://k6.io/) để test trang web chịu tải tối đa bao nhiêu người dùng.
+
+### Bước 1: Cài đặt K6
+
+**Windows (chocolatey):**
+```bash
+choco install k6
+```
+
+**Windows (winget):**
+```bash
+winget install k6 --source winget
+```
+
+**macOS:**
+```bash
+brew install k6
+```
+
+**Linux:**
+```bash
+sudo gpg -k
+sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+sudo apt-get update
+sudo apt-get install k6
+```
+
+### Bước 2: Chạy Load Test cơ bản
+
+```bash
+cd Devops_OpenBK
+k6 run load-test.js
+```
+
+Script này sẽ:
+- Tăng dần từ 0 → 50 virtual users (VU) trong 2 phút
+- Giữ 50 VU thêm 2 phút
+- Gọi trang chủ, API danh sách khóa học, API danh mục
+- In báo cáo thống kê cuối cùng
+
+### Bước 3: Chạy Stress Test (tìm ngưỡng tối đa)
+
+```bash
+k6 run load-test-stress.js
+```
+
+Script tăng dần: 10 → 30 → 50 → 100 → 150 → 200 → 250 → 300 VU. Quan sát khi **http_req_failed** tăng hoặc **http_req_duration** tăng mạnh → đó là ngưỡng chịu tải gần đúng.
+
+### Bước 4: Test với URL khác (localhost, staging)
+
+```bash
+k6 run -e BASE_URL=http://localhost load-test.js
+```
+
+hoặc:
+
+```bash
+k6 run -e BASE_URL=https://openbk.me load-test.js
+```
+
+### Kết quả mẫu
+
+Sau khi chạy, k6 in ra:
+- **http_reqs**: Số request thành công
+- **http_req_failed**: Tỷ lệ request lỗi (càng thấp càng tốt)
+- **http_req_duration**: Thời gian phản hồi (avg, p95, p99)
+- **vus**: Số virtual users đồng thời
+
+Khi tỷ lệ lỗi tăng trên 5% hoặc thời gian phản hồi tăng đột biến → hệ thống đã vượt ngưỡng chịu tải.
+
+---
+
