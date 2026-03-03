@@ -89,6 +89,31 @@ Link repo front-end & backend:
 * **Database**: PostgreSQL
 * **Authentication**: JWT + Cookies
 * **Triển khai**: Docker + Docker Compose + Nginx + Certbot (SSL)
+* **Process Manager**: PM2 (Backend cluster mode - tận dụng đa nhân cho t3.small)
+
+---
+
+## PM2 - Backend cluster mode
+
+Image backend trên Docker Hub đã include **PM2** ở chế độ cluster. Trên server EC2 chỉ cần `docker compose pull` và `docker compose up -d` — không cần build lại.
+
+- **2 instances** chạy song song, load balancing tự động
+- Cấu hình: `Open_BK_BE/ecosystem.config.js`
+
+**Chạy không dùng Docker** (trực tiếp trên EC2):
+
+```bash
+cd Open_BK_BE
+npm install
+pm2 start ecosystem.config.js
+```
+
+**Lệnh PM2 thường dùng:**
+```bash
+pm2 status          # Xem trạng thái
+pm2 logs opbk-backend   # Xem log
+pm2 restart opbk-backend
+```
 
 ---
 
@@ -111,7 +136,7 @@ DB_USER=<...>
 DB_PASS=<...>
 DB_NAME=<...>
 DB_PORT=<...>
-# Cần thêm các biến sau khi build frontend từ source (docker compose up --build)
+# Chỉ dùng khi build FE từ source (CI/CD dùng các secret tương ứng)
 NEXT_PUBLIC_API_URL=http://<ip>:<port>/api/v1
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=<...>
 NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=<...>
@@ -143,16 +168,11 @@ NEXTAUTH_URL=https://<domain>
 
 ### 3. Chạy dự án
 
-**Cách 1 - Dùng image có sẵn từ Docker Hub** (khuyến nghị cho production):
+FE và BE đều dùng image có sẵn từ Docker Hub (build bởi CI/CD). Trên server chỉ cần:
+
 ```bash
 docker compose pull
 docker compose up -d
-```
-
-**Cách 2 - Build frontend từ source** (khi cần tùy chỉnh API URL):
-Đảm bảo đã clone Open_BK_FE vào thư mục cùng cấp với Devops_OpenBK, và thêm `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_GOOGLE_CLIENT_SECRET` vào file `.env`:
-```bash
-docker compose up -d --build
 ```
 
 Sau khi khởi chạy thành công:
