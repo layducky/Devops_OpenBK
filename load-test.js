@@ -12,24 +12,31 @@ import { check, sleep } from "k6";
 // Cấu hình từ biến môi trường hoặc mặc định
 const BASE_URL = __ENV.BASE_URL || "https://openbk.me";
 
+/**
+ * Mapping gần đúng:
+ * - Mỗi VU trong loadTest thực hiện ~3 request (home + 2 API) rồi sleep(1s),
+ *   nên với 200 VU sẽ xấp xỉ ~600 RPS nếu server phản hồi nhanh.
+ */
 export const options = {
   scenarios: {
-    // Kịch bản 1: Ramp-up từ 0 lên 50 VU trong 2 phút, giữ 2 phút
+    // Kịch bản load ổn định quanh ~600 RPS
     ramp_up: {
       executor: "ramping-vus",
       startVUs: 0,
       stages: [
-        { duration: "2m", target: 300 },
-        { duration: "2m", target: 300 },
+        { duration: "2m", target: 100 }, // warm-up ~300 RPS
+        { duration: "2m", target: 200 }, // giữ ~600 RPS
+        { duration: "3m", target: 200 }, // soak ở ~600 RPS
+        { duration: "2m", target: 0 },   // ramp-down
       ],
       startTime: "0s",
-      gracefulRampDown: "30s",
+      gracefulRampDown: "1m",
       exec: "loadTest",
     },
   },
   thresholds: {
-    http_req_failed: ["rate<0.01"],
-    http_req_duration: ["p(95)<1000"],  // 95% request < 1s
+    http_req_failed: ["rate<0.01"], // < 1% lỗi
+    http_req_duration: ["p(95)<800"], // 95% request < 800ms ở ~600 RPS
   },
 };
 

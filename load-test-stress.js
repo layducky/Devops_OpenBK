@@ -1,10 +1,3 @@
-/**
- * K6 Stress Test - Tìm ngưỡng chịu tải tối đa
- * Tăng dần VUs cho đến khi hệ thống bắt đầu lỗi
- *
- * Chạy: k6 run load-test-stress.js
- */
-
 import http from "k6/http";
 import { check, sleep } from "k6";
 
@@ -16,16 +9,19 @@ export const options = {
       executor: "ramping-vus",
       startVUs: 0,
       stages: [
-        { duration: "1m", target: 150 },
-        { duration: "1m", target: 300 },
-        { duration: "1m", target: 450 },
-        { duration: "1m", target: 600 },
-        { duration: "1m", target: 750 },
-        { duration: "1m", target: 900 },
+        { duration: "1m", target: 150 }, // ~300 RPS
+        { duration: "1m", target: 300 }, // ~600 RPS (ngưỡng hiện tại)
+        { duration: "1m", target: 450 }, // ~900 RPS
+        { duration: "1m", target: 600 }, // ~1200 RPS (stress mạnh)
+        { duration: "2m", target: 0 },   // ramp-down
       ],
       gracefulRampDown: "1m",
       exec: "stressTest",
     },
+  },
+  thresholds: {
+    http_req_failed: ["rate<0.05"],        // Cho phép nhiều lỗi hơn chút khi stress
+    http_req_duration: ["p(95)<1500"],     // P95 < 1.5s dưới tải cao
   },
 };
 
