@@ -9,10 +9,10 @@ export const options = {
       executor: "ramping-vus",
       startVUs: 0,
       stages: [
-        { duration: "1m", target: 150 }, // ~300 RPS
-        { duration: "1m", target: 300 }, // ~600 RPS (ngưỡng hiện tại)
-        { duration: "1m", target: 450 }, // ~900 RPS
-        { duration: "1m", target: 600 }, // ~1200 RPS (stress mạnh)
+        { duration: "1m", target: 1000 }, // ~300 RPS
+        { duration: "1m", target: 2000 }, // ~600 RPS (ngưỡng hiện tại)
+        { duration: "1m", target: 3000 }, // ~900 RPS
+        { duration: "1m", target: 4000 }, // ~1200 RPS (stress mạnh)
         { duration: "2m", target: 0 },   // ramp-down
       ],
       gracefulRampDown: "1m",
@@ -28,5 +28,5 @@ export const options = {
 export function stressTest() {
   const res = http.get(`${BASE_URL}/api/v1/course/public/`);
   check(res, { "status 200": (r) => r.status === 200 });
-  sleep(0.5);
+  sleep(1);
 }
