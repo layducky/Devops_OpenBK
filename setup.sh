@@ -9,6 +9,7 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 docker compose pull
+docker compose down -v
 docker compose up -d
 
 echo "Waiting for backend (and RDS) to be ready..."
